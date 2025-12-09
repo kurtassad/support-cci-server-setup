@@ -1,0 +1,54 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: external-dns
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "-10"
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  project: default
+  source:
+    repoURL: https://kubernetes-sigs.github.io/external-dns/
+    chart: external-dns
+    targetRevision: 1.19.0
+    helm:
+      values: |
+        provider: aws
+        aws:
+          region: {{ .Values.global.aws.region }}
+          zoneType: public
+        domainFilters:
+          - {{ .Values.global.domainFilter }}
+        serviceAccount:
+          create: true
+          name: external-dns-sa
+        interval: 1m
+        triggerLoopOnEvent: true
+        policy: sync
+        registry: txt
+        txtOwnerId: {{ .Values.global.clusterName }}
+        txtPrefix: external-dns-
+        sources:
+          - service
+          - ingress
+        ttl: 60
+        logLevel: info
+        logFormat: json
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: external-dns
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
+    retry:
+      limit: 5
+      backoff:
+        duration: 5s
+        factor: 2
+        maxDuration: 3m
+

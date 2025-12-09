@@ -1,0 +1,129 @@
+circleci-server-version: "4.9.0"
+
+argocd:
+  repository: https://github.com/kurtassad/support-cci-server-setup.git
+
+global:
+  clusterName: "ka-cci"
+  aws:
+    region: ap-southeast-1
+  domainFilter: ka-cci.com  # Base domain for Route53
+  domainName: "circleci.ka-cci.com"  # Change to your desired subdomain (e.g., "mycci.ka-cci.com") or root domain (e.g., "ka-cci.com")
+  otel:
+    enabled: true
+    collector_host: "jaeger-collector.monitoring.svc.cluster.local"
+    collector_port: 4317
+    sample_rate: 1.0
+  imagePullSecrets:
+    - regcred
+    - dockerhub-secret
+  container:
+    # pulls from dockerhub
+    registry: ""
+    org: "circleci"
+
+machine_provisioner:
+  fudgeScaleFactor: 0
+  fudgeConstantTerm: 0
+  demandFudgeFactor: 0
+  providers:
+    ec2:
+      enabled: true
+      region: "ap-southeast-1"
+      assignPublicIP: true
+      irsaRole: "eks-pod-identity"
+      subnets:
+        - "subnet-0662628b13ad03f8e"
+        - "subnet-04c71fecd44779209"
+        - "subnet-0b19f54e310f3b527"
+      securityGroupId: "sg-0a6b9eee01d0ddcc6"
+      tags:
+        owner: "kurtis.assad@circleci.com"
+        cost_center: "sm"
+        Team: "customer_engineering"
+        asset_criticality: "false"
+        iac: "false"
+        critical_until: "2026-12-30"
+        Terraform: "false"
+
+# Hack. We are running kong for cert management but need to use annotation to allow external-dns to manage the DNS record.
+nginx:
+  annotations:
+    external-dns.alpha.kubernetes.io/hostname: circleci.ka-cci.com, app.circleci.ka-cci.com
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory: 200Mi
+
+kong:
+  acme:
+    enabled: true
+    email: kurtis.assad@circleci.com
+  resources:
+    requests:
+      cpu: 50m
+      memory: 1Gi
+    limits:
+      cpu: 500m
+      memory: 2Gi
+
+object_storage:
+  bucketName: "ka-cci-cci"
+  s3:
+    enabled: true
+    endpoint: https://s3.ap-southeast-1.amazonaws.com
+    region: ap-southeast-1
+    irsaRole: "eks-pod-identity" # Hack to allow pod identity instead of irsa
+
+github:
+  enterprise: false
+
+# Below are the rest, usually don't need to change these
+postgresql:
+  auth:
+    existingSecret: postgresql
+mongodb:
+  auth:
+    existingSecret: mongodb-credentials
+rabbitmq:
+  internal: true
+  auth:
+    existingPasswordSecret: rabbitmq
+    existingErlangSecret: rabbitmq
+tink:
+  enabled: true
+nomad:
+  server:
+    replicas: 3
+    rpc:
+      mTLS:
+        enabled: true
+telegraf:
+  resources:
+    requests:
+      cpu: 50m
+      memory: 100Mi
+    limits:
+      cpu: 100m
+      memory: 200Mi
+  service:
+    ports:
+      - name: statsd
+        port: 8125
+        protocol: UDP
+        targetPort: 8125
+      - name: prometheus
+        port: 9273
+        protocol: TCP
+        targetPort: 9273
+  config:
+    outputs:
+      - file:
+          files: ["stdout"]
+      - prometheus_client:
+          listen: ":9273"
+          metric_version: 2
+          expiration_interval: "60s"

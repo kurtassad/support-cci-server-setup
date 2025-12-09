@@ -1,0 +1,7 @@
+apiVersion: v2
+name: support-cci-server-setup-stack
+description: Root chart for Support CCI Server Setup Kubernetes Stack
+version: 0.1.0
+appVersion: 1.0.0
+type: application
+

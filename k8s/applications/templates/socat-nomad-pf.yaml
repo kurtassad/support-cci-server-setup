@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: socat-nomad-port-forward
+  namespace: circleci-server
+  labels:
+    app: socat-nomad-port-forward
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: socat-nomad-port-forward
+  template:
+    metadata:
+      labels:
+        app: socat-nomad-port-forward
+    spec:
+      containers:
+      - name: socat
+        image: alpine/socat:latest
+        args:
+        - tcp-listen:4646,fork,reuseaddr
+        - tcp-connect:nomad-server:4646
+        ports:
+        - containerPort: 4646
+          name: nomad
+        resources:
+          requests:
+            cpu: 10m
+            memory: 16Mi
+          limits:
+            cpu: 50m
+            memory: 32Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nomad-ui-proxy
+  namespace: circleci-server
+  labels:
+    app: socat-nomad-port-forward
+spec:
+  type: ClusterIP
+  ports:
+  - port: 4646
+    targetPort: 4646
+    protocol: TCP
+    name: nomad
+  selector:
+    app: socat-nomad-port-forward
