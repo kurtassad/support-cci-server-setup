@@ -1,6 +1,6 @@
 terraform {
   backend "s3" {
-    bucket = "ka-cci-terraform-state"
+    bucket = "ka-cci-terraform"
     key    = "ka-cci/default/terraform.tfstate"
     region = "ap-northeast-1"
   }
@@ -18,18 +18,18 @@ terraform {
 
 # Configure params here
 locals {
-  cluster_name   = "ka-cci"
+  cluster_name   = "ka-cci-test"
   region         = "ap-northeast-1"
   email          = "kurtis.assad@circleci.com"
   critical_until = "2026-12-30"
 
   # Subdomain for CircleCI server
   # Set to empty string "" to deploy to root domain
-  subdomain   = "circleci"
-  base_domain = "ka-cci.com" # Base domain for your Route53 hosted zone
+  subdomain   = ""
+  base_domain = "aws.cci.nanophate.com" # Base domain for your Route53 hosted zone
 
   # Need to get this from route53
-  hosted_zones = ["arn:aws:route53:::hostedzone/Z09353691DH93X3LBRCKB"]
+  hosted_zones = ["arn:aws:route53:::hostedzone/Z09260361BLT6DTF6JROL"]
 }
 
 # Derived params

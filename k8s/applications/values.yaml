@@ -4,11 +4,11 @@ argocd:
   repository: https://github.com/kurtassad/support-cci-server-setup.git
 
 global:
-  clusterName: "ka-cci"
+  clusterName: "ka-cci-test"
   aws:
     region: ap-northeast-1
-  domainFilter: ka-cci.com  # Base domain for Route53
-  domainName: "circleci.ka-cci.com"  # Change to your desired subdomain (e.g., "mycci.ka-cci.com") or root domain (e.g., "ka-cci.com")
+  domainFilter: aws.cci.nanophate.com  # Base domain for Route53
+  domainName: "aws.cci.nanophate.com"  # Change to your desired subdomain (e.g., "mycci.ka-cci.com") or root domain (e.g., "ka-cci.com")
   otel:
     enabled: true
     collector_host: "jaeger-collector.monitoring.svc.cluster.local"
@@ -33,10 +33,10 @@ machine_provisioner:
       assignPublicIP: true
       irsaRole: "eks-pod-identity"
       subnets:
-        - "subnet-0662628b13ad03f8e"
-        - "subnet-04c71fecd44779209"
-        - "subnet-0b19f54e310f3b527"
-      securityGroupId: "sg-0a6b9eee01d0ddcc6"
+        - "subnet-035f5577dcc88ce68"
+        - "subnet-074cbcc6943e9ca96"
+        - "subnet-0fe3ddf93e8c4236c"
+      securityGroupId: "sg-09d75cbdeab4df5cc"
       tags:
         owner: "kurtis.assad@circleci.com"
         cost_center: "sm"
@@ -49,7 +49,7 @@ machine_provisioner:
 # Hack. We are running kong for cert management but need to use annotation to allow external-dns to manage the DNS record.
 nginx:
   annotations:
-    external-dns.alpha.kubernetes.io/hostname: circleci.ka-cci.com, app.circleci.ka-cci.com
+    external-dns.alpha.kubernetes.io/hostname: aws.cci.nanophate.com, app.aws.cci.nanophate.com
   resources:
     requests:
       cpu: 50m
@@ -71,7 +71,7 @@ kong:
       memory: 2Gi
 
 object_storage:
-  bucketName: "ka-cci-cci"
+  bucketName: "ka-cci-test-cci"
   s3:
     enabled: true
     endpoint: https://s3.ap-northeast-1.amazonaws.com
