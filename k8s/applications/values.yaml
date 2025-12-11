@@ -56,7 +56,7 @@ nginx:
       memory: 100Mi
     limits:
       cpu: 100m
-      memory: 200Mi
+      memory: 250Mi
 
 kong:
   acme:
