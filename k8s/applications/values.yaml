@@ -97,7 +97,7 @@ tink:
   enabled: true
 nomad:
   server:
-    replicas: 3
+    replicas: 5
     rpc:
       mTLS:
         enabled: true
