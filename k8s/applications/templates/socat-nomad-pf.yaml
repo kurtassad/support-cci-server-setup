@@ -5,8 +5,6 @@ metadata:
   namespace: circleci-server
   labels:
     app: socat-nomad-port-forward
-  finalizers:
-    - resources-finalizer.argocd.argoproj.io/foreground
 spec:
   replicas: 1
   selector:
