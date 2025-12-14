@@ -9,7 +9,7 @@ spec:
   project: default
   destination:
     server: https://kubernetes.default.svc
-    namespace: kubevpn
+    namespace: default
   source:
     repoURL: https://raw.githubusercontent.com/kubenetworks/kubevpn/master/charts
     targetRevision: 2.9.11
