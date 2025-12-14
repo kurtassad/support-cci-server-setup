@@ -11,6 +11,8 @@ spec:
     chart: telepresence
     repoURL: https://app.getambassador.io
     targetRevision: 2.20.2
+    helm:
+      releaseName: traffic-manager 
   destination:
     server: https://kubernetes.default.svc
     namespace: ambassador
