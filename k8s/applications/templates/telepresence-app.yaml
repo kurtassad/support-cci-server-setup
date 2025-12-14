@@ -1,4 +1,4 @@
-apiVersion: argoproj.io/v1alpha1
+yamlapiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: telepresence
@@ -12,7 +12,14 @@ spec:
     repoURL: https://app.getambassador.io
     targetRevision: 2.20.2
     helm:
-      releaseName: traffic-manager 
+      releaseName: traffic-manager
+      values: |
+        licenseKey:
+          create: false
+        systema:
+          enabled: false
+        client:
+          connectionTTL: 0
   destination:
     server: https://kubernetes.default.svc
     namespace: ambassador
@@ -22,5 +29,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-
-  
