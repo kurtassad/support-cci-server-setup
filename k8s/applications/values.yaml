@@ -33,10 +33,10 @@ machine_provisioner:
       assignPublicIP: true
       irsaRole: "eks-pod-identity"
       subnets:
-        - "subnet-0a0334297e3c97634"
-        - "subnet-04bb424d172135410"
-        - "subnet-0bb432a67eb20fd8d"
-      securityGroupId: "sg-01940bbdab74cb0db"
+        - "subnet-0a253116ae70e9098"
+        - "subnet-0481554cf577e486e"
+        - "subnet-008bebf9ad8c122ff"
+      securityGroupId: "sg-0e88c41c881e10b32"
       tags:
         owner: "kurtis.assad@circleci.com"
         cost_center: "sm"
