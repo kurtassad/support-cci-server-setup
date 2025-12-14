@@ -1,4 +1,4 @@
-yamlapiVersion: argoproj.io/v1alpha1
+apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
   name: telepresence
@@ -14,12 +14,16 @@ spec:
     helm:
       releaseName: traffic-manager
       values: |
+        managerRbac:
+          create: true
+          namespaced: false
         licenseKey:
           create: false
-        systema:
-          enabled: false
         client:
-          connectionTTL: 0
+          connectionTTL: 24h
+        logLevel: info
+        agent:
+          logLevel: info
   destination:
     server: https://kubernetes.default.svc
     namespace: ambassador
