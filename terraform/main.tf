@@ -160,16 +160,16 @@ module "eks" {
     x86_nodes = {
       associate_public_ip_address = true
       ami_type                    = "AL2023_x86_64_STANDARD"
-      instance_types              = ["t3.2xlarge"]
+      instance_types              = ["t3.large"]
       capacity_type               = "SPOT"
 
       subnet_ids = module.vpc.public_subnets
 
       attach_cluster_primary_security_group = true
 
-      desired_size = 5
-      min_size     = 5
-      max_size     = 5
+      desired_size = 3
+      min_size     = 3
+      max_size     = 3
 
       tags = local.cost_center_tags
     }
