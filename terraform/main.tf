@@ -160,7 +160,7 @@ module "eks" {
     x86_nodes = {
       associate_public_ip_address = true
       ami_type                    = "AL2023_x86_64_STANDARD"
-      instance_types              = ["t3.large"]
+      instance_types              = ["t3.xlarge"]
       capacity_type               = "SPOT"
 
       subnet_ids = module.vpc.public_subnets
