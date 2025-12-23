@@ -1,8 +1,10 @@
 #!/bin/bash
 
-# Script to port-forward ArgoCD, Prometheus, Jaeger, Nomad, PostgreSQL, and MongoDB
+# Script to port-forward ArgoCD, Prometheus, Jaeger, Nomad, PostgreSQL, MongoDB, and Redis
 
 set -e
+
+# pkill -f "kubectl port-forward"
 
 # Colors for output
 GREEN='\033[0;32m'
@@ -10,7 +12,7 @@ BLUE='\033[0;34m'
 YELLOW='\033[1;33m'
 NC='\033[0m' # No Color
 
-echo -e "${BLUE}Starting port-forwards for ArgoCD, Prometheus, Jaeger, Nomad, PostgreSQL, and MongoDB...${NC}"
+echo -e "${BLUE}Starting port-forwards for ArgoCD, Prometheus, Jaeger, Nomad, PostgreSQL, MongoDB, and Redis...${NC}"
 
 # Find ArgoCD server pod
 ARGOCD_POD=$(kubectl get pods -n argocd -l app.kubernetes.io/name=argocd-server -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
@@ -18,10 +20,9 @@ if [ -z "$ARGOCD_POD" ]; then
     echo -e "${YELLOW}Warning: ArgoCD server pod not found${NC}"
 else
     echo -e "${GREEN}Found ArgoCD pod: ${ARGOCD_POD}${NC}"
-    kubectl port-forward -n argocd "$ARGOCD_POD" 8080:8080 > /dev/null 2>&1 &
+    echo -e "${GREEN}Starting ArgoCD port-forward on http://localhost:8080${NC}"
+    kubectl port-forward -n argocd "$ARGOCD_POD" 8080:8080 &
     ARGOCD_PID=$!
-    echo -e "${GREEN}ArgoCD port-forward started (PID: $ARGOCD_PID)${NC}"
-    echo -e "${GREEN}  → http://localhost:8080${NC}"
 fi
 
 # Find Prometheus server pod
@@ -30,10 +31,9 @@ if [ -z "$PROMETHEUS_POD" ]; then
     echo -e "${YELLOW}Warning: Prometheus server pod not found${NC}"
 else
     echo -e "${GREEN}Found Prometheus pod: ${PROMETHEUS_POD}${NC}"
-    kubectl port-forward -n monitoring "$PROMETHEUS_POD" 9090:9090 > /dev/null 2>&1 &
+    echo -e "${GREEN}Starting Prometheus port-forward on http://localhost:9090${NC}"
+    kubectl port-forward -n monitoring "$PROMETHEUS_POD" 9090:9090 &
     PROMETHEUS_PID=$!
-    echo -e "${GREEN}Prometheus port-forward started (PID: $PROMETHEUS_PID)${NC}"
-    echo -e "${GREEN}  → http://localhost:9090${NC}"
 fi
 
 # Port-forward Jaeger UI to 7070
@@ -42,20 +42,18 @@ if [ -z "$JAEGER_POD" ]; then
     echo -e "${YELLOW}Warning: Jaeger pod not found${NC}"
 else
     echo -e "${GREEN}Found Jaeger pod: ${JAEGER_POD}${NC}"
-    kubectl port-forward -n monitoring "$JAEGER_POD" 7070:16686 > /dev/null 2>&1 &
+    echo -e "${GREEN}Starting Jaeger port-forward on http://localhost:7070${NC}"
+    kubectl port-forward -n monitoring "$JAEGER_POD" 7070:16686 &
     JAEGER_PID=$!
-    echo -e "${GREEN}Jaeger port-forward started (PID: $JAEGER_PID)${NC}"
-    echo -e "${GREEN}  → http://localhost:7070${NC}"
 fi
 
 # Port-forward Nomad UI via socat helper
 echo -e "${BLUE}Setting up Nomad UI port-forward...${NC}"
 # Check if socat helper service exists
 if kubectl get svc nomad-ui-proxy -n circleci-server > /dev/null 2>&1; then
-    kubectl port-forward -n circleci-server svc/nomad-ui-proxy 4646:4646 > /dev/null 2>&1 &
+    echo -e "${GREEN}Starting Nomad UI port-forward on http://localhost:4646/ui/jobs${NC}"
+    kubectl port-forward -n circleci-server svc/nomad-ui-proxy 4646:4646 &
     NOMAD_PID=$!
-    echo -e "${GREEN}Nomad UI port-forward started (PID: $NOMAD_PID)${NC}"
-    echo -e "${GREEN}  → http://localhost:4646/ui/jobs${NC}"
 else
     echo -e "${YELLOW}Warning: nomad-ui-proxy service not found in circleci-server namespace${NC}"
     echo -e "${YELLOW}Please deploy the socat helper first or check if CircleCI is installed${NC}"
@@ -67,10 +65,9 @@ if [ -z "$POSTGRES_POD" ]; then
     echo -e "${YELLOW}Warning: PostgreSQL pod not found${NC}"
 else
     echo -e "${GREEN}Found PostgreSQL pod: ${POSTGRES_POD}${NC}"
-    kubectl port-forward -n circleci-server "$POSTGRES_POD" 5432:5432 > /dev/null 2>&1 &
+    echo -e "${GREEN}Starting PostgreSQL port-forward on localhost:5432${NC}"
+    kubectl port-forward -n circleci-server "$POSTGRES_POD" 5432:5432 &
     POSTGRES_PID=$!
-    echo -e "${GREEN}PostgreSQL port-forward started (PID: $POSTGRES_PID)${NC}"
-    echo -e "${GREEN}  → localhost:5432${NC}"
 fi
 
 # Find MongoDB pod
@@ -79,14 +76,24 @@ if [ -z "$MONGODB_POD" ]; then
     echo -e "${YELLOW}Warning: MongoDB pod not found${NC}"
 else
     echo -e "${GREEN}Found MongoDB pod: ${MONGODB_POD}${NC}"
-    kubectl port-forward -n circleci-server "$MONGODB_POD" 27017:27017 > /dev/null 2>&1 &
+    echo -e "${GREEN}Starting MongoDB port-forward on localhost:27018${NC}"
+    kubectl port-forward -n circleci-server "$MONGODB_POD" 27018:27017 &
     MONGODB_PID=$!
-    echo -e "${GREEN}MongoDB port-forward started (PID: $MONGODB_PID)${NC}"
-    echo -e "${GREEN}  → localhost:27017${NC}"
+fi
+
+# Find Redis master pod
+REDIS_POD="redis-master-0"
+if [ -z "$REDIS_POD" ]; then
+    echo -e "${YELLOW}Warning: Redis pod not found${NC}"
+else
+    echo -e "${GREEN}Found Redis pod: ${REDIS_POD}${NC}"
+    echo -e "${GREEN}Starting Redis port-forward on localhost:6379${NC}"
+    kubectl port-forward -n circleci-server "$REDIS_POD" 6379:6379 &
+    REDIS_PID=$!
 fi
 
 echo ""
-echo -e "${BLUE}Port-forwards are running in the background.${NC}"
+echo -e "${BLUE}All port-forwards started.${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop all port-forwards.${NC}"
 echo ""
 
@@ -117,6 +124,10 @@ cleanup() {
     if [ ! -z "$MONGODB_PID" ]; then
         kill $MONGODB_PID 2>/dev/null || true
         echo -e "${GREEN}Stopped MongoDB port-forward${NC}"
+    fi
+    if [ ! -z "$REDIS_PID" ]; then
+        kill $REDIS_PID 2>/dev/null || true
+        echo -e "${GREEN}Stopped Redis port-forward${NC}"
     fi
     exit 0
 }

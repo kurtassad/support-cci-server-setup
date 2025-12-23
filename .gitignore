@@ -1,3 +1,4 @@
 .terraform
 secrets/
 .DS_Store
+query-job-details.sh
