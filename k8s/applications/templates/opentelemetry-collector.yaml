@@ -32,8 +32,8 @@ spec:
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
 metadata:
-  name: my-instrumentation
-  namespace: opentelemetry-system
+  name: default
+  namespace: circleci-server
 spec:
   exporter:
     endpoint: http://otel-collector:4317
