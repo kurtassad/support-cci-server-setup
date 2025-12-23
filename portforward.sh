@@ -4,7 +4,7 @@
 
 set -e
 
-# pkill -f "kubectl port-forward"
+pkill -f "kubectl port-forward" || true
 
 # Colors for output
 GREEN='\033[0;32m'
