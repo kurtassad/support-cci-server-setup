@@ -3,8 +3,6 @@ kind: Application
 metadata:
   name: jaeger
   namespace: argocd
-  annotations:
-    argocd.argoproj.io/sync-wave: "6" # Deploy after Prometheus, before circleci-server
   finalizers:
     - resources-finalizer.argocd.argoproj.io/foreground
 spec:
@@ -15,20 +13,86 @@ spec:
     targetRevision: 3.4.1
     helm:
       values: |
-        provisionDataStore:
-          cassandra: false
         allInOne:
           enabled: true
-          service:
-            headless: false
+          extraEnv:
+            - name: QUERY_BASE_PATH
+              value: /jaeger
+          
+          resources:
+            limits:
+              cpu: 500m
+              memory: 512Mi
+            requests:
+              cpu: 256m
+              memory: 256Mi
+
+        # In-memory is fine for dev/testing
+        # For production, switch to elasticsearch
         storage:
-          type: memory  
+          type: memory
+
+        # Disable these - all-in-one handles everything
         agent:
           enabled: false
         collector:
           enabled: false
         query:
           enabled: false
+
+        provisionDataStore:
+          cassandra: false
+          elasticsearch: false
+
+        config:
+          receivers:
+            otlp:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:4317
+                http:
+                  endpoint: 0.0.0.0:4318
+            jaeger:
+              protocols:
+                grpc:
+                  endpoint: 0.0.0.0:14250
+                thrift_http:
+                  endpoint: 0.0.0.0:14268
+                thrift_compact:
+                  endpoint: 0.0.0.0:6831
+            zipkin:
+              endpoint: 0.0.0.0:9411
+
+          processors:
+            batch:
+
+          exporters:
+            jaeger_storage_exporter:
+              trace_storage: primary_store
+
+          extensions:
+            jaeger_query:
+              storage:
+                traces: primary_store
+            
+            jaeger_storage:
+              backends:
+                primary_store:
+                  memory:
+                    max_traces: 100000
+            
+            healthcheckv2:
+              http:
+                endpoint: 0.0.0.0:13133
+
+          service:
+            extensions: [jaeger_storage, jaeger_query, healthcheckv2]
+            pipelines:
+              traces:
+                receivers: [otlp, jaeger, zipkin]
+                processors: [batch]
+                exporters: [jaeger_storage_exporter]
+
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -38,4 +102,3 @@ spec:
       selfHeal: true
     syncOptions:
       - CreateNamespace=true
-
