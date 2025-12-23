@@ -53,7 +53,7 @@ metadata:
   namespace: circleci-server
 spec:
   exporter:
-    endpoint: http://otel-collector:4317
+    endpoint: http://otel-collector:4318
   propagators:
     - tracecontext
     - baggage
