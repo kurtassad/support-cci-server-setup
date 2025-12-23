@@ -14,6 +14,15 @@ spec:
           http:
             endpoint: 0.0.0.0:4318
 
+    processors:
+      memory_limiter:
+        check_interval: 1s
+        limit_percentage: 75
+        spike_limit_percentage: 15
+      batch:
+        timeout: 10s
+        send_batch_size: 1024
+
     exporters:
       debug:
         verbosity: detailed
@@ -26,8 +35,16 @@ spec:
       pipelines:
         traces:
           receivers: [otlp]
-          processors: []
+          processors: [memory_limiter, batch]
           exporters: [debug, otlp/jaeger]
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [debug]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [debug]
 ---
 apiVersion: opentelemetry.io/v1alpha1
 kind: Instrumentation
