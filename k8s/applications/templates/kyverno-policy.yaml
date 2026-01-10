@@ -1,0 +1,52 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: add-jdwp-to-clojure-services
+  annotations:
+    argocd.argoproj.io/sync-wave: "5"
+    policies.kyverno.io/title: Add JDWP Debug to Clojure Services
+    policies.kyverno.io/category: Debugging
+    policies.kyverno.io/severity: low
+    policies.kyverno.io/description: >-
+      Adds JDWP (Java Debug Wire Protocol) configuration to Clojure/JVM services
+      to enable remote debugging. Uses JAVA_TOOL_OPTIONS which is automatically
+      picked up by the JVM. Exposes port 5005 for debugger connections.
+spec:
+  # Change to 'Enforce' to apply mutations (Audit only logs what would happen)
+  validationFailureAction: Audit
+  background: false
+  rules:
+    - name: add-jdwp-debug-config
+      match:
+        any:
+          - resources:
+              kinds:
+                - Deployment
+              names:
+                # Clojure/JVM services that use JVM_OPTS
+                - audit-log-service
+                - builds-service
+                - domain-service
+                - frontend
+                - insights-service
+                - legacy-notifier
+                - permissions-service
+                - webhook-service
+                - workflows-conductor-event-consumer
+                - workflows-conductor-grpc-handler
+      mutate:
+        patchStrategicMerge:
+          spec:
+            template:
+              spec:
+                containers:
+                  - (name): "*"
+                    ports:
+                      - containerPort: 5005
+                        name: jdwp
+                        protocol: TCP
+                    env:
+                      # JAVA_TOOL_OPTIONS is automatically picked up by the JVM
+                      # No need to modify existing JVM_OPTS
+                      - name: JAVA_TOOL_OPTIONS
+                        value: "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=*:5005"
