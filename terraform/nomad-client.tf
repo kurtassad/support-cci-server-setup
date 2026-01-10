@@ -1,5 +1,5 @@
 module "nomad_clients" {
-  source = "git::https://github.com/kurtassad/server-terraform.git//nomad-aws?ref=879da5a7a035776336c9d0f2118b627b34581ab6"
+  source = "git::https://github.com/kurtassad/server-terraform.git//nomad-aws?ref=2699c6ef002217405fc7549a231b6bf40e3fc2ac"
 
   aws_region = local.region
 
