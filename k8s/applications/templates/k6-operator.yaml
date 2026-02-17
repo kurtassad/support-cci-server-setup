@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: k6-operator
+  namespace: argocd
+spec:
+  project: default
+  source:
+    chart: k6-operator
+    repoURL: https://grafana.github.io/helm-charts
+    targetRevision: 4.2.0
+    helm:
+      releaseName: my-k6-operator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: default
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
