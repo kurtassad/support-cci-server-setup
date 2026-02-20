@@ -89,7 +89,7 @@
 
     And then run
     ```bash
-    export REPO_URL=https://github.com/<your-username>/support-cci-server-setup.git
+    export REPO_URL=htwtps://github.com/<your-username>/support-cci-server-setup.git
     export GH_CLIENT_ID=<client-id>
     export GH_CLIENT_SECRET=<client-secret>
     ```

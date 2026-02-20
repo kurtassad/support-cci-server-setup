@@ -233,11 +233,21 @@ module "circleci_machine_provisioner_pod_identity" {
         },
         {
           "Action" : [
-            "ec2:RunInstances",
+            "ec2:CreateTags",
             "ec2:StartInstances",
             "ec2:StopInstances",
             "ec2:TerminateInstances"
           ],
+          "Effect" : "Allow",
+          "Resource" : "arn:aws:ec2:*:*:instance/*",
+          "Condition" : {
+            "StringEquals" : {
+              "ec2:ResourceTag/ManagedBy" : "circleci-machine-provisioner"
+            }
+          }
+        },
+        {
+          "Action" : "ec2:RunInstances",
           "Effect" : "Allow",
           "Resource" : "arn:aws:ec2:*:*:instance/*",
           "Condition" : {
@@ -252,7 +262,7 @@ module "circleci_machine_provisioner_pod_identity" {
               "ec2:ResourceTag/ManagedBy" : "circleci-machine-provisioner"
             }
           }
-        }
+        },
       ]
     })
   ]

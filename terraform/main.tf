@@ -57,6 +57,12 @@ provider "aws" {
 
 data "aws_caller_identity" "current" {}
 
+resource "aws_key_pair" "eks_ssh" {
+  key_name   = "${local.cluster_name}-eks-ssh"
+  public_key = file("~/.ssh/id_ed25519.pub")
+  tags       = local.cost_center_tags
+}
+
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "6.5.0"
@@ -80,7 +86,7 @@ module "eks" {
   version = "21.8.0"
 
   name               = local.cluster_name
-  kubernetes_version = "1.33"
+  kubernetes_version = "1.34"
 
   endpoint_public_access  = true
   endpoint_private_access = true
@@ -129,6 +135,15 @@ module "eks" {
       source_security_group_id = module.nomad_clients.nomad_sg_id
     }
 
+    ingress_ssh = {
+      description = "SSH access to nodes"
+      protocol    = "tcp"
+      from_port   = 22
+      to_port     = 22
+      type        = "ingress"
+      cidr_blocks = ["0.0.0.0/0"] # Restrict to your IP for better security
+    }
+
   }
 
   // Remove automatic SG tag on cluster SG. If not done, ingress will get confused when syncing LB
@@ -170,6 +185,23 @@ module "eks" {
       desired_size = 3
       min_size     = 3
       max_size     = 3
+
+      # SSH key for the launch template
+      key_name = aws_key_pair.eks_ssh.key_name
+
+      block_device_mappings = {
+        xvda = {
+          device_name = "/dev/xvda"
+          ebs = {
+            volume_size           = 100 # Change from default 20GB to desired size
+            volume_type           = "gp3"
+            iops                  = 3000
+            throughput            = 125
+            encrypted             = true
+            delete_on_termination = true
+          }
+        }
+      }
 
       tags = local.cost_center_tags
     }
