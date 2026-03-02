@@ -1,0 +1,30 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: circleci-release-agent
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  project: default
+  source:
+    repoURL: https://circleci-public.github.io/cci-k8s-release-agent
+    chart: circleci-release-agent
+    targetRevision: "*"
+    helm:
+      values: |
+        tokenSecret:
+          # Use existing secret instead of creating one
+          create: false
+          name: circleci-release-agent-token
+        managedNamespaces:
+          - release-test
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: circleci-release-agent-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

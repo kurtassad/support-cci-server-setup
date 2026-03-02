@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script to port-forward ArgoCD, Prometheus, Jaeger, Nomad, PostgreSQL, MongoDB, and Redis
+# Script to port-forward ArgoCD, Prometheus, Jaeger, Nomad, PostgreSQL, MongoDB, Redis, and Argo Rollouts
 
 # Don't exit on errors - let all port-forwards attempt to start
 set +e
@@ -101,6 +101,16 @@ else
     sleep 0.5
 fi
 
+# Port-forward Argo Rollouts dashboard
+if kubectl get svc argo-rollouts-dashboard -n argo-rollouts > /dev/null 2>&1; then
+    echo -e "${GREEN}Starting Argo Rollouts dashboard port-forward on http://localhost:3100${NC}"
+    kubectl port-forward -n argo-rollouts svc/argo-rollouts-dashboard 3100:3100 > /dev/null 2>&1 &
+    ROLLOUTS_PID=$!
+    sleep 0.5
+else
+    echo -e "${YELLOW}Warning: Argo Rollouts dashboard service not found${NC}"
+fi
+
 echo ""
 echo -e "${BLUE}All port-forwards started.${NC}"
 echo -e "${YELLOW}Press Ctrl+C to stop all port-forwards.${NC}"
@@ -137,6 +147,10 @@ cleanup() {
     if [ ! -z "$REDIS_PID" ]; then
         kill $REDIS_PID 2>/dev/null || true
         echo -e "${GREEN}Stopped Redis port-forward${NC}"
+    fi
+    if [ ! -z "$ROLLOUTS_PID" ]; then
+        kill $ROLLOUTS_PID 2>/dev/null || true
+        echo -e "${GREEN}Stopped Argo Rollouts dashboard port-forward${NC}"
     fi
     exit 0
 }
