@@ -13,6 +13,10 @@ spec:
     targetRevision: 2.17.0
     helm:
       releaseName: datadog-operator
+      values: |
+        watchNamespaces:
+          - default
+          - datadog-operator
   destination:
     server: https://kubernetes.default.svc
     namespace: default
