@@ -7,18 +7,14 @@ metadata:
     - resources-finalizer.argocd.argoproj.io
 spec:
   project: default
-  
   source:
     chart: datadog-operator
     repoURL: https://helm.datadoghq.com
     targetRevision: 2.17.0
     helm:
       releaseName: datadog-operator
-  
   destination:
     server: https://kubernetes.default.svc
-    namespace: datadog-operator
-  
   syncPolicy:
     automated:
       prune: true
