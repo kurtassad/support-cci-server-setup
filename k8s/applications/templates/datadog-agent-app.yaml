@@ -1,6 +1,5 @@
-Update the datadog-agent.yaml file
-kind: "DatadogAgent"
-apiVersion: "datadoghq.com/v2alpha1"
+apiVersion: datadoghq.com/v2alpha1
+kind: DatadogAgent
 metadata:
   name: "datadog"
 spec:
