@@ -1,10 +1,11 @@
 apiVersion: datadoghq.com/v2alpha1
 kind: DatadogAgent
 metadata:
-  name: "datadog"
+  name: datadog
+  namespace: datadog-operator
 spec:
   global:
-    clusterName: "your-cluster-name-here"
+    clusterName: ka-cci
     site: "ap1.datadoghq.com"
     credentials:
       apiSecret:
