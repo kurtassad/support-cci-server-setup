@@ -14,11 +14,24 @@ spec:
     helm:
       values: |
         tokenSecret:
-          # Use existing secret instead of creating one
           create: false
           name: circleci-release-agent-token
         managedNamespaces:
           - release-test
+        podAnnotations:
+          ad.datadoghq.com/manager.checks: |
+            {
+              "openmetrics": {
+                "instances": [
+                  {
+                    "openmetrics_endpoint": "http://%%host%%:8080/metrics",
+                    "namespace": "circleci_release_agent",
+                    "metrics": [".*"]
+                  }
+                ]
+              }
+            }
+          ad.datadoghq.com/manager.logs: '[{"source":"circleci-release-agent","service":"circleci-release-agent"}]'
   destination:
     server: https://kubernetes.default.svc
     namespace: circleci-release-agent-system
