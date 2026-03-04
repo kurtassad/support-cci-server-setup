@@ -23,7 +23,7 @@ spec:
     spec:
       containers:
         - name: hello-world
-          image: nginx:alpine
+          image: ktktktktk/test:latest
           ports:
             - containerPort: 80
           resources:
