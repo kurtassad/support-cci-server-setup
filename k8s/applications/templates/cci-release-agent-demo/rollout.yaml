@@ -1,0 +1,61 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: hello-world
+  namespace: cci-release-agent
+  annotations:
+    circleci.com/project-id: 6e3e23b7-34a9-4202-ba24-1ffc46d14e30
+  labels:
+    circleci.com/component-name: hello-world
+    circleci.com/version: 1.0.0
+spec:
+  replicas: 3
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app: hello-world
+  template:
+    metadata:
+      labels:
+        app: hello-world
+        circleci.com/component-name: hello-world
+        circleci.com/version: 1.0.0
+    spec:
+      containers:
+        - name: hello-world
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 100m
+              memory: 64Mi
+  strategy:
+    canary:
+      steps:
+        - setWeight: 20
+        - pause: {duration: 30s}
+        - setWeight: 40
+        - pause: {duration: 30s}
+        - setWeight: 60
+        - pause: {duration: 30s}
+        - setWeight: 80
+        - pause: {duration: 30s}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world
+  namespace: cci-release-agent
+  labels:
+    circleci.com/component-name: hello-world
+spec:
+  selector:
+    app: hello-world
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP

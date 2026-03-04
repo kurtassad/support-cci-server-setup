@@ -18,6 +18,7 @@ spec:
           name: circleci-release-agent-token
         managedNamespaces:
           - release-test
+          - cci-release-agent
         podAnnotations:
           ad.datadoghq.com/manager.checks: |
             {

@@ -1,0 +1,22 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: cci-release-agent-demo
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/foreground
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kurtassad/support-cci-server-setup.git
+    targetRevision: main
+    path: k8s/applications/templates/cci-release-agent-demo
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: cci-release-agent
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
