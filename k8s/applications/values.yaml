@@ -7,8 +7,8 @@ global:
   clusterName: "ka-cci"
   aws:
     region: ap-northeast-1
-  domainFilter: ka-cci.com  # Base domain for Route53
-  domainName: "circleci.ka-cci.com"  # Change to your desired subdomain (e.g., "mycci.ka-cci.com") or root domain (e.g., "ka-cci.com")
+  domainFilter: ka-cci.com # Base domain for Route53
+  domainName: "circleci.ka-cci.com" # Change to your desired subdomain (e.g., "mycci.ka-cci.com") or root domain (e.g., "ka-cci.com")
   otel:
     enabled: true
     collector_host: "jaeger-collector.monitoring.svc.cluster.local"
@@ -33,10 +33,10 @@ machine_provisioner:
       assignPublicIP: true
       irsaRole: "eks-pod-identity"
       subnets:
-        - "subnet-0a253116ae70e9098"
-        - "subnet-0481554cf577e486e"
-        - "subnet-008bebf9ad8c122ff"
-      securityGroupId: "sg-0e88c41c881e10b32"
+        - "subnet-0c03a77e5818e211e"
+        - "subnet-0c28c0f2062c61267"
+        - "subnet-0bae600cf47e1266f"
+      securityGroupId: "sg-09ce53d2b326de53d"
       tags:
         owner: "kurtis.assad@circleci.com"
         cost_center: "sm"
